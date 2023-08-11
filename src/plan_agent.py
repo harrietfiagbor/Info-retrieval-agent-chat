@@ -1,12 +1,11 @@
 import os
-import logging
-import chainlit as cl 
-from dotenv import load-dotenv
+import logging 
+from dotenv import load_dotenv
 
 from langchain import PromptTemplate
 from langchain.agents import AgentType, Tool, initialize_agent
 from langchain.chains import ConversationChain
-from langchain.chains.conversation.memory import ConversatonBufferMemory
+from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import DuckDuckGoSearchRun
 from langchain.utilities import WikipediaAPIWrapper
@@ -14,7 +13,7 @@ from langchain.utilities import WikipediaAPIWrapper
 load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-llm = ChatOpenAI(temperature=0, model='gpt-3.5-turbo)
+llm = ChatOpenAI(temperature=0, model='gpt-3.5-turbo', streaming=True)
 
 search = DuckDuckGoSearchRun()
 wikipedia = WikipediaAPIWrapper()
@@ -34,26 +33,25 @@ wikipedia_tool = Tool(
 )
 
 try:
-    with (
-        open('./src/generate_template.txt') as file_1,
-        open('./src/plan_prompt_template.txt') as file_2
-):
-    generate_template = file_1.read()
-    plan_template = file_2.read()
+    with open('./generate_template.txt') as file_1, open('./plan_prompt_template.txt') as file_2:
+        generate_template = file_1.read()
+        plan_template = file_2.read()
 except OSError as error:
     logging.error('This Error Occurred: %s', error)
 
+# with open('./src/generate_template.txt') as file_1:
+#     generate_template = file1.read()
 
 prompt = PromptTemplate(
     template=generate_template,
-    input_variable=['input', 'chat_history']
+    input_variables=["input", "chat_history"]
 )
 
 plan_prompt = PromptTemplate(
     template=plan_template,
-    input_variable=['input', 'chat_history']
+    input_variables=["input", "chat_history"]
 )
-memory = ConversatonBufferMemory(memory_key="chat_history", return_messages=True )
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True )
 
 plan_chain = ConversationChain(
     llm=llm,
@@ -67,7 +65,6 @@ agent = initialize_agent(
     agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
     tools=[search_tool, wikipedia_tool],
     llm=llm,
-    verbose=True,
     max_iterations=3,
     prompt=prompt,
     memory=memory
