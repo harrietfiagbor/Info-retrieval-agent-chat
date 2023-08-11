@@ -1,0 +1,6 @@
+Plan: {input}
+
+History: {chat_history}
+
+Let's think about answer step by step.
+If it's information retrieval task, solve it like a professor in particular field.
